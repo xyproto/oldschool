@@ -43,19 +43,21 @@ int init() {
   //SDL_RendererFlags(SDL_RENDERER_PRESENTVSYNC);
   
   screen = SDL_CreateRGBSurface(0, OSC_WIDTH, OSC_HEIGHT, 8, 0, 0, 0, 0);
-	//SDL_SetSurfaceBlendMode(screen, SDL_BLENDMODE_NONE);
+  //SDL_SetSurfaceBlendMode(screen, SDL_BLENDMODE_NONE);
   sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8, SDL_TEXTUREACCESS_STREAMING, OSC_WIDTH, OSC_HEIGHT);
-	//SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
+  //SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
   return 0;
 }
 
 void setcolor(uint8_t colorindex, uint8_t r, uint8_t g, uint8_t b) {
+  //SDL_SetPaletteColors(pal, 
   SDL_LockSurface(screen);
   SDL_Color color = screen->format->palette->colors[colorindex];
   color.r = r;
   color.g = g;
   color.b = b;
-	SDL_UnlockSurface(screen);
+  color.a = 255;
+  SDL_UnlockSurface(screen);
 }
 
 void clear(uint8_t colorindex) {
@@ -85,7 +87,7 @@ uint8_t getpixel(int x, int y) {
 
 void flip() {
   SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
-	SDL_RenderClear(renderer);
+  SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
   SDL_RenderPresent(renderer);
   //SDL_UpdateWindowSurfaceRects(win, rects, numrects);
