@@ -40,69 +40,55 @@ int init() {
   int height = 0;
   SDL_GetWindowSize(win, &width, &height);
 
-  // Calculate the size of a "pixel"
-  spixelw = (float)width / (float)OSC_WIDTH;
-  spixelh = (float)height / (float)OSC_HEIGHT;
-
+  //SDL_RendererFlags(SDL_RENDERER_PRESENTVSYNC);
+  
+  screen = SDL_CreateRGBSurface(0, OSC_WIDTH, OSC_HEIGHT, 8, 0, 0, 0, 0);
+	//SDL_SetSurfaceBlendMode(screen, SDL_BLENDMODE_NONE);
+  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8, SDL_TEXTUREACCESS_STREAMING, OSC_WIDTH, OSC_HEIGHT);
+	//SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
   return 0;
 }
 
 void setcolor(uint8_t colorindex, uint8_t r, uint8_t g, uint8_t b) {
-  reds[colorindex] = r;
-  greens[colorindex] = g;
-  blues[colorindex] = b;
+  SDL_LockSurface(screen);
+  SDL_Color color = screen->format->palette->colors[colorindex];
+  color.r = r;
+  color.g = g;
+  color.b = b;
+	SDL_UnlockSurface(screen);
 }
 
 void clear(uint8_t colorindex) {
-  //SDL_SetRenderDrawColor(renderer, reds[colorindex], greens[colorindex], blues[colorindex], SDL_ALPHA_OPAQUE);
-  //SDL_RenderClear(renderer);
-  for (int i=0; i < OSC_WIDTH*OSC_HEIGHT; i++) {
-    screen[i] = colorindex;
-  }
+	for (int y=0; y < screen->h; y++) {
+			for (int x=0; x < screen->w; x++) {
+        ((uint8_t*)screen->pixels)[x + y*screen->pitch] = colorindex;
+			}
+   }
 }
 
 void putpixel(int x, int y, uint8_t colorindex) {
+  SDL_LockSurface(screen);
   if ((x >= 0) && (y >= 0) && (x < OSC_WIDTH) && (y < OSC_HEIGHT)) {
-    screen[x + y*OSC_WIDTH] = colorindex;
+    // screen[x + y*OSC_WIDTH] = colorindex;
+    ((uint8_t*)screen->pixels)[x + y*screen->pitch] = colorindex;
   }
+  SDL_UnlockSurface(screen);
 }
 
 uint8_t getpixel(int x, int y) {
-  return screen[x + y*OSC_WIDTH];
-}
-
-void drawpixel(int x, int y, uint8_t colorindex) {
-  SDL_SetRenderDrawColor(renderer, reds[colorindex], greens[colorindex], blues[colorindex], SDL_ALPHA_OPAQUE);
-  const SDL_Rect pixel = {
-    (int)((float)x * spixelw),
-    (int)((float)y * spixelh),
-    (int)spixelw,
-    (int)spixelh
-  };
-  SDL_RenderFillRect(renderer, &pixel);
+  // return screen[x + y*OSC_WIDTH];
+  SDL_LockSurface(screen);
+  uint8_t color = ((uint8_t*)screen->pixels)[x + y*screen->pitch];
+  SDL_UnlockSurface(screen);
+	return color;
 }
 
 void flip() {
-  // TODO: Use a hash map?
-  // TODO: Blit instead?
-  int i;
-  bool changed = false;
-  for (int y=0; y < OSC_HEIGHT; y++) {
-    for (int x=0; x < OSC_WIDTH; x++) {
-      i = x+y*OSC_WIDTH;
-      // only draw changed "pixels"
-      if (oldscreen[i] != screen[i]) {
-  	drawpixel(x, y, screen[i]);
-	changed = true;
-      }
-      oldscreen[i] = screen[i];
-    }
-  }
-  if (changed) {
-    SDL_RenderPresent(renderer);
-    // TODO: Use this function instead:
-    //SDL_UpdateWindowSurfaceRects(win, rects, numrects);
-  }
+  SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
+	SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+  SDL_RenderPresent(renderer);
+  //SDL_UpdateWindowSurfaceRects(win, rects, numrects);
 }
 
 void sleep(uint32_t ms) {
@@ -141,7 +127,7 @@ void wfk() {
   }
 }
 
-SDL_Keycode getkey() {
+const char* getkey() {
   SDL_Event event;
   SDL_Keycode keycode;
   while (SDL_PollEvent(&event)) {
@@ -149,11 +135,11 @@ SDL_Keycode getkey() {
       keycode = event.key.keysym.sym;
     }
   }
-  return keycode;
+  return SDL_GetKeyName(keycode);
 }
 
 uint8_t* getframebuffer() {
-  return (uint8_t*)screen;
+  return (uint8_t*)(screen->pixels);
 }
 
 void quit() {

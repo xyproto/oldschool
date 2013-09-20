@@ -21,9 +21,20 @@ int main(void) {
   wfk();
 
   int x = 1;
+  int direction = 1;
   while (!keypressed()) {
-    putpixel(x, 0, 3);
-    x++;
+    clear(0);
+    for (int y=0; y < 200; y++) {
+	putpixel(x, y, 3);
+    }
+    x += direction;
+    if (x >= 320) {
+	direction = -1;
+	x = 319;
+    } else if (x <= 0) {
+	direction = 1;
+	x = 0;
+    }
     flip();
     sleep(10);
   }

@@ -12,21 +12,8 @@ extern "C" {
 
 SDL_Window *win;
 SDL_Renderer *renderer;
-
-float spixelw; // width of a "pixel" in the native resolution
-float spixelh; // height of a "pixel" in the native resolution
-
-// the palette
-uint8_t reds[256];
-uint8_t greens[256];
-uint8_t blues[256];
-
-// the framebuffer
-uint8_t screen[64000];
-
-// copy of the framebuffer, used for comparison to avoid unnecessary drawing
-// TODO: Remove this one, use the update rectangle functionality of SDL2 instead
-uint8_t oldscreen[64000];
+SDL_Surface *screen;
+SDL_Texture *sdlTexture;
 
 int init(); // initialize everything (fullscreen graphics)
 void clear(uint8_t colorindex); // clear the framebuffer with the given color index
@@ -37,7 +24,7 @@ void flip(); // draw the pixels
 void quit(); // quit
 void sleep(uint32_t ms); // wait for the given number of milliseconds
 bool keypressed(); // is a key down?
-SDL_Keycode getkey(); // get the keycode for the last pressed key
+const char* getkey(); // get a string describing the last pressed key
 void wfk(); // wait for a key to be released (or pressed and then released)
 bool escpressed(); // check if esc has been pressed
 
