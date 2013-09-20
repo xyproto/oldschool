@@ -3,12 +3,20 @@
 
 int main(void) {
   init();
+
+  clear(0);
+  for (int x=0; x < 256; x++) {
+    putpixel(x, 80, x);
+  }
+  flip();
+  wfk();
+
   setcolor(0, 0, 0, 0);
   setcolor(1, 0, 0, 100);
   setcolor(2, 255, 0, 0);
   setcolor(3, 120, 255, 200);
   setcolor(4, 255, 255, 255);
-  clear(1);
+  clear(3);
   putpixel(0, 0, 2);
   putpixel(1, 1, 2);
   flip();

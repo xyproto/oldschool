@@ -65,10 +65,8 @@ int init() {
   SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
 
   // Set up the palette like for mode13h
-  int pos = 0;
   for (int i=0; i<256; i++) {
-    setcolor(pos, vgapal[pos], vgapal[pos+1], vgapal[pos+2]);
-    pos += 3;
+    setcolor(i, vgapal[i*3], vgapal[i*3+1], vgapal[i*3+2]);
   }
 
   return 0;
@@ -103,11 +101,11 @@ void clear(uint8_t colorindex) {
 
 void putpixel(int x, int y, uint8_t colorindex) {
   Uint32 pixel = SDL_MapRGB(screen->format, reds[colorindex], greens[colorindex], blues[colorindex]);
-  Uint32* pixels = screen->pixels;
   if ((x >= 0) && (y >= 0) && (x < OSC_WIDTH) && (y < OSC_HEIGHT)) {
-    SDL_LockSurface(screen);
-    pixels[x + y*OSC_WIDTH] = pixel;
-    SDL_UnlockSurface(screen);
+
+    SDL_LockTexture(sdlTexture, NULL, &screen->pixels, &screen->pitch);
+    ((Uint32*)screen->pixels)[x + y*OSC_WIDTH] = pixel;
+    SDL_UnlockTexture(sdlTexture);
   }
   //SDL_FillRect(screen, NULL, pixel);
   //SDL_LockSurface(screen);
