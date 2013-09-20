@@ -23,7 +23,9 @@ uint8_t blues[256];
 
 // the framebuffer
 uint8_t screen[64000];
+
 // copy of the framebuffer, used for comparison to avoid unnecessary drawing
+// TODO: Remove this one, use the update rectangle functionality of SDL2 instead
 uint8_t oldscreen[64000];
 
 int init(); // initialize everything (fullscreen graphics)
