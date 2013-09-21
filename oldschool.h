@@ -15,6 +15,11 @@ SDL_Renderer *renderer;
 SDL_Surface *screen;
 SDL_Texture *sdlTexture;
 
+// TODO: Use SDL_Palette instead
+uint8_t reds[256];
+uint8_t greens[256];
+uint8_t blues[256];
+
 int init(); // initialize everything (fullscreen graphics)
 void clear(uint8_t colorindex); // clear the framebuffer with the given color index
 void setcolor(uint8_t colorindex, uint8_t r, uint8_t g, uint8_t b); // define a color index with red, green and blue

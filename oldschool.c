@@ -41,15 +41,36 @@ int init() {
   SDL_GetWindowSize(win, &width, &height);
 
   //SDL_RendererFlags(SDL_RENDERER_PRESENTVSYNC);
-  
-  screen = SDL_CreateRGBSurface(0, OSC_WIDTH, OSC_HEIGHT, 8, 0, 0, 0, 0);
-  //SDL_SetSurfaceBlendMode(screen, SDL_BLENDMODE_NONE);
-  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8, SDL_TEXTUREACCESS_STREAMING, OSC_WIDTH, OSC_HEIGHT);
-  //SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
+
+  screen = SDL_CreateRGBSurface(0, OSC_WIDTH, OSC_HEIGHT, 32, 0, 0, 0, 0);
+
+  if (screen == NULL) {
+    fprintf(stderr,
+	    "\nCould not create surface: %s\n",
+	    SDL_GetError()
+	   );
+  }
+
+  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, OSC_WIDTH, OSC_HEIGHT);
+  if (sdlTexture == NULL) {
+    fprintf(stderr,
+	    "\nCould not create texture: %s\n",
+	    SDL_GetError()
+	   );
+  }
+
+  // Turn off alpha
+  SDL_SetSurfaceBlendMode(screen, SDL_BLENDMODE_NONE);
+  SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
+
   return 0;
 }
 
 void setcolor(uint8_t colorindex, uint8_t r, uint8_t g, uint8_t b) {
+  reds[colorindex] = r;
+  greens[colorindex] = g;
+  blues[colorindex] = b;
+/*
   //SDL_SetPaletteColors(pal, 
   SDL_LockSurface(screen);
   SDL_Color color = screen->format->palette->colors[colorindex];
@@ -58,35 +79,55 @@ void setcolor(uint8_t colorindex, uint8_t r, uint8_t g, uint8_t b) {
   color.b = b;
   color.a = 255;
   SDL_UnlockSurface(screen);
+*/
 }
 
 void clear(uint8_t colorindex) {
-	for (int y=0; y < screen->h; y++) {
-			for (int x=0; x < screen->w; x++) {
-        ((uint8_t*)screen->pixels)[x + y*screen->pitch] = colorindex;
-			}
-   }
+  Uint32 pixel = SDL_MapRGB(screen->format, reds[colorindex], greens[colorindex], blues[colorindex]);
+  Uint32* pixels = screen->pixels;
+  SDL_LockSurface(screen);
+  for (int i=0; i < screen->h*screen->w; i++) {
+    pixels[i] = pixel;
+  }
+  SDL_UnlockSurface(screen);
+  // TODO: Use SDL functions to clear the surface instead
 }
 
 void putpixel(int x, int y, uint8_t colorindex) {
-  SDL_LockSurface(screen);
+  Uint32 pixel = SDL_MapRGB(screen->format, reds[colorindex], greens[colorindex], blues[colorindex]);
+  Uint32* pixels = screen->pixels;
   if ((x >= 0) && (y >= 0) && (x < OSC_WIDTH) && (y < OSC_HEIGHT)) {
-    // screen[x + y*OSC_WIDTH] = colorindex;
-    ((uint8_t*)screen->pixels)[x + y*screen->pitch] = colorindex;
+    SDL_LockSurface(screen);
+    pixels[x + y*OSC_WIDTH] = pixel;
+    SDL_UnlockSurface(screen);
   }
-  SDL_UnlockSurface(screen);
+  //SDL_FillRect(screen, NULL, pixel);
+  //SDL_LockSurface(screen);
+  //if ((x >= 0) && (y >= 0) && (x < OSC_WIDTH) && (y < OSC_HEIGHT)) {
+  //  ((Uint32*)screen->pixels)[x + y*screen->pitch] = SDL_MapRGB(screen->format, reds[colorindex], greens[colorindex], blues[colorindex]);
+  //}
+  //SDL_UnlockSurface(screen);
 }
 
 uint8_t getpixel(int x, int y) {
   // return screen[x + y*OSC_WIDTH];
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
   SDL_LockSurface(screen);
-  uint8_t color = ((uint8_t*)screen->pixels)[x + y*screen->pitch];
+  Uint32 packedColor = ((Uint32*)screen->pixels)[x + y*screen->pitch];
+  SDL_GetRGB(packedColor, screen->format, &r, &g, &b);
   SDL_UnlockSurface(screen);
-	return color;
+  for (int i=0; i<256; i++) {
+    if ((reds[i] == r) && (greens[i] == g) && (blues[i] == b)) {
+      return i;
+    }
+  }
+  return 0;
 }
 
 void flip() {
-  SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
+  SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, OSC_WIDTH * sizeof(Uint32));
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
   SDL_RenderPresent(renderer);
