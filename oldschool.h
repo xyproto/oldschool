@@ -37,4 +37,4 @@ bool escpressed(); // check if esc has been pressed
 } /* End of extern "C" { */
 #endif
 
-#endif /* H_NEWT */
+#endif /* H_OLDSCHOOL */

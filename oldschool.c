@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SDL2/SDL.h"
+#include "vgapal.h"
 
 const int OSC_WIDTH = 320;
 const int OSC_HEIGHT = 200;
@@ -62,6 +63,13 @@ int init() {
   // Turn off alpha
   SDL_SetSurfaceBlendMode(screen, SDL_BLENDMODE_NONE);
   SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_NONE);
+
+  // Set up the palette like for mode13h
+  int pos = 0;
+  for (int i=0; i<256; i++) {
+    setcolor(pos, vgapal[pos], vgapal[pos+1], vgapal[pos+2]);
+    pos += 3;
+  }
 
   return 0;
 }
