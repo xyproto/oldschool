@@ -44,7 +44,6 @@ int init() {
   //SDL_RendererFlags(SDL_RENDERER_PRESENTVSYNC);
 
   screen = SDL_CreateRGBSurface(0, OSC_WIDTH, OSC_HEIGHT, 32, 0, 0, 0, 0);
-
   if (screen == NULL) {
     fprintf(stderr,
 	    "\nCould not create surface: %s\n",
@@ -72,10 +71,13 @@ int init() {
   return 0;
 }
 
+// Changing the palette for an "indexed color" on an RGB surface is a pretty slow operation
 void setcolor(uint8_t colorindex, uint8_t r, uint8_t g, uint8_t b) {
   reds[colorindex] = r;
   greens[colorindex] = g;
   blues[colorindex] = b;
+  // TODO: Find a way to fix all the old pixels when a color changes
+
 /*
   //SDL_SetPaletteColors(pal, 
   SDL_LockSurface(screen);
@@ -103,9 +105,11 @@ void putpixel(int x, int y, uint8_t colorindex) {
   Uint32 pixel = SDL_MapRGB(screen->format, reds[colorindex], greens[colorindex], blues[colorindex]);
   if ((x >= 0) && (y >= 0) && (x < OSC_WIDTH) && (y < OSC_HEIGHT)) {
 
+    //SDL_LockSurface(screen);
     SDL_LockTexture(sdlTexture, NULL, &screen->pixels, &screen->pitch);
     ((Uint32*)screen->pixels)[x + y*OSC_WIDTH] = pixel;
     SDL_UnlockTexture(sdlTexture);
+    //SDL_UnlockSurface(screen);
   }
   //SDL_FillRect(screen, NULL, pixel);
   //SDL_LockSurface(screen);
@@ -120,10 +124,12 @@ uint8_t getpixel(int x, int y) {
   uint8_t r;
   uint8_t g;
   uint8_t b;
-  SDL_LockSurface(screen);
+  //SDL_LockSurface(screen);
+  SDL_LockTexture(sdlTexture, NULL, &screen->pixels, &screen->pitch);
   Uint32 packedColor = ((Uint32*)screen->pixels)[x + y*screen->pitch];
   SDL_GetRGB(packedColor, screen->format, &r, &g, &b);
-  SDL_UnlockSurface(screen);
+  SDL_UnlockTexture(sdlTexture);
+  //SDL_UnlockSurface(screen);
   for (int i=0; i<256; i++) {
     if ((reds[i] == r) && (greens[i] == g) && (blues[i] == b)) {
       return i;
@@ -193,6 +199,8 @@ uint8_t* getframebuffer() {
 
 void quit() {
   SDL_DestroyRenderer(renderer);
+  //SDL_DestroySurface(screen);
+  SDL_DestroyTexture(sdlTexture);
   SDL_DestroyWindow(win);
   atexit(SDL_Quit);
 }

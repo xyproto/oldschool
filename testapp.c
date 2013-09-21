@@ -4,6 +4,8 @@
 int main(void) {
   init();
 
+  sleep(200);
+
   clear(0);
   for (int x=0; x < 256; x++) {
     putpixel(x, 80, x);
@@ -16,6 +18,12 @@ int main(void) {
   setcolor(2, 255, 0, 0);
   setcolor(3, 120, 255, 200);
   setcolor(4, 255, 255, 255);
+  for (int x=5; x < 256; x++) {
+    setcolor(x, x, x, x);
+  }
+  flip();
+  wfk();
+
   clear(3);
   putpixel(0, 0, 2);
   putpixel(1, 1, 2);
