@@ -7,9 +7,11 @@ int main(void) {
   sleep(200);
 
   clear(0);
-  for (int x=0; x < 256; x++) {
-    putpixel(x, 80, x);
-  }
+  int y=80; //for (int y=0; y < 200; y++) {
+    for (int x=0; x < 320; x++) {
+      putpixel(x, y, (int)((((float)x)/320.0f)*256.0f));
+    }
+  //}
   flip();
   wfk();
 

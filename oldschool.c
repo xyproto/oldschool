@@ -101,6 +101,7 @@ void clear(uint8_t colorindex) {
   // TODO: Use SDL functions to clear the surface instead
 }
 
+// TODO: Draw to a buffer instead, only lock/unluck the surface when flipping
 void putpixel(int x, int y, uint8_t colorindex) {
   Uint32 pixel = SDL_MapRGB(screen->format, reds[colorindex], greens[colorindex], blues[colorindex]);
   if ((x >= 0) && (y >= 0) && (x < OSC_WIDTH) && (y < OSC_HEIGHT)) {
@@ -184,7 +185,7 @@ void wfk() {
 
 const char* getkey() {
   SDL_Event event;
-  SDL_Keycode keycode;
+  SDL_Keycode keycode = 0;
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_KEYDOWN) {
       keycode = event.key.keysym.sym;
